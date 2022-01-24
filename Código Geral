@@ -1,0 +1,20 @@
+// Código de exemplo e teste
+
+void setup() {
+  pinMode(A0, OUTPUT);
+  digitalWrite(A0, HIGH);
+
+}
+void troca(){
+  if (digitalRead(A0) == HIGH){
+    digitalWrite(A0, LOW);
+  }
+  else{
+    digitalWrite(A0, HIGH);
+  }
+}
+void loop() {
+  delay(1000);
+  troca();
+
+}
