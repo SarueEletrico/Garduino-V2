@@ -20,6 +20,7 @@ const int limiteChuva = 500;   // valor analógico limite para detectar chuva (e
 
 // ---------- Funções ----------------
 int leituraUmidade(int tempo); // função para leitura dos sensores HL69 - umidade do solo
+float leituraVolume(int tempo, int d1, int d2, int altura); // função que calcula volume de água do reservatório utilizando o JSN-SR04T
 
 
 void setup() {
