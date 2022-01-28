@@ -24,6 +24,11 @@ int leituraUmidade(int tempo); // função para leitura dos sensores HL69 - umid
 
 void setup() {
 
+  pinMode(trig, OUTPUT);
+  pinMode(echo, INPUT);
+  
+  digitalWrite(trig, LOW);
+
 
 
 
@@ -33,8 +38,18 @@ void loop() {
 
 }
 
+// ==============================================================================================
+//                             DESENVOLVIMENTO DAS FUNÇÕES
+// ==============================================================================================
+
+
+// -------------- LEITURA DA UMIDADE DO SOLO -----------
 
 int leituraUmidade(int tempo){
+
+  /*
+  tempo = tempo de captação de dados dos sensores, em segundos
+  */
 
   static unsigned long delay1 = millis(); // auxiliar para monitorar tempo de leitura
   int cont = 0;   // conta quantidade de leituras para tirar a média
@@ -49,4 +64,54 @@ int leituraUmidade(int tempo){
   int resultado = (valor1 + valor2)/cont;   //média das médias dos valores lidos 
   
   return resultado;
+}
+
+
+// ------------ CÁLCULO DO VOLUME DE ÁGUA -------------
+
+float leituraVolume(int tempo, int d1, int d2, int altura){
+
+  /*
+  CONSIDERANDO UMA TANQUE DE ÁGUA COM FORMATO DE TRONCO...
+  
+  tempo = tempo de captação de dados do sensor, em segundos
+  d1 = maior diâmtro do tanque, em metros
+  d2 = menor diâmetro do tanque, em metros
+  altura = altura total do tanque, em metros
+  
+  */
+  
+  // ******Cálculo da altura entre sensor e nível***** 
+
+  static unsigned long delay1 = millis(); // auxiliar para monitorar tempo de leitura
+  int cont = 0;   // conta quantidade de leituras para tirar a média
+  float valor = 0; // distância em cm do sensor JSN-SR04T
+
+  while ((millis() - delay1) < tempo){
+  
+    digitalWrite(trig, HIGH); // emite o ultrassônico por 10 microsegundos
+    delayMicroseconds(10);
+    digitalWrite(trig, LOW);
+    
+    int pulso = (float) pulseIn(echo, HIGH); //mede o tempo do pino echo em HIGH em microsegundos
+  
+    valor += puslo/58.82; // distãncia convertida para cm - parâmetro do datasheet
+    cont++;
+  }
+  
+  valor /= 100; // distância em metros
+  
+  float distancia = (valor)/cont; //distância média em metros
+  
+  // ******** Cálculo do volume *******
+  
+  float r1 = d1/2;
+  float r2 = d2/2;
+  float pi = 3.14159;
+  
+  float rf = ((altura - distancia)*(r1-r2))/altura + r2;
+  float volume = (pi*(altura-distancia)*(rf*rf + rf*r2 + r2*r2))/3;
+  
+  return volume;
+
 }
