@@ -1,20 +1,52 @@
-// Código de exemplo e teste
+
+
+// ----------- PINOS ---------------
+
+#define pinEcho 12
+#define pinTrig 13
+#define pinSQW 2
+#define pinRele 3
+#define pinHL691 A3
+#define pinHL692 A6
+#define pinChuva A2
+#define pinACS712 A1
+#define pinTensao A2
+#define pinSCL A5
+#define pinSDA A4
+
+// ---------- Constantes -------------
+const int limiteChuva = 500;   // valor analógico limite para detectar chuva (experimental)
+
+
+// ---------- Funções ----------------
+int leituraUmidade(int tempo); // função para leitura dos sensores HL69 - umidade do solo
+
 
 void setup() {
-  pinMode(A0, OUTPUT);
-  digitalWrite(A0, HIGH);
 
-}
-void troca(){
-  if (digitalRead(A0) == HIGH){
-    digitalWrite(A0, LOW);
-  }
-  else{
-    digitalWrite(A0, HIGH);
-  }
+
+
+
 }
 void loop() {
-  delay(1000);
-  troca();
 
+
+}
+
+
+int leituraUmidade(int tempo){
+
+  static unsigned long delay1 = millis(); // auxiliar para monitorar tempo de leitura
+  int cont = 0;   // conta quantidade de leituras para tirar a média
+  int valor1 = 0; // valores de um sensor HL69
+  int valor2 = 0; // valores de um sensor HL69
+  
+  while ((millis() - delay1) < tempo){ 
+    valor1 += analogRead(pinHL691);
+    valor2 += analogRead(pinHL692);
+    cont++;
+  }
+  int resultado = (valor1 + valor2)/cont;   //média das médias dos valores lidos 
+  
+  return resultado;
 }
