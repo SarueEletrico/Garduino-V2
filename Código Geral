@@ -52,19 +52,40 @@ int leituraUmidade(int tempo){
   tempo = tempo de captação de dados dos sensores, em segundos
   */
 
-  static unsigned long delay1 = millis(); // auxiliar para monitorar tempo de leitura
+  unsigned long delay1 = millis(); // auxiliar para monitorar tempo de leitura
   int cont = 0;   // conta quantidade de leituras para tirar a média
-  int valor1 = 0; // valores de um sensor HL69
-  int valor2 = 0; // valores de um sensor HL69
+  int valor1_HL69 = 0; // valores de um sensor HL69
+  int valor2_HL69 = 0; // valores de um sensor HL69
   
   while ((millis() - delay1) < tempo){ 
-    valor1 += analogRead(pinHL691);
-    valor2 += analogRead(pinHL692);
+    valor1_HL69 += analogRead(pinHL691);
+    valor2_HL69 += analogRead(pinHL692);
+    cont0++;
+  }
+  int resultado_umidade = ( valor1_HL69 + valor2_HL69)/cont;   //média das médias dos valores lidos 
+  
+  return resultado_umidade;
+}
+
+// -------------- LEITURA DO SENSOR DE CHUVA -----------
+
+int leituraChuva(int tempo){
+
+  /*
+  tempo = tempo de captação de dados dos sensores, em segundos
+  */
+
+  unsigned long delay1 = millis(); // auxiliar para monitorar tempo de leitura
+  int cont = 0;   // conta quantidade de leituras para tirar a média
+  int valor_chuva = 0; // valores de um sensor de chuva
+  
+  while ((millis() - delay1) < tempo){ 
+    valor_chuva += analogRead(pinChuva);
     cont++;
   }
-  int resultado = (valor1 + valor2)/cont;   //média das médias dos valores lidos 
+  int resultado_chuva = valor_chuva/cont;   //média das médias dos valores lidos 
   
-  return resultado;
+  return resultado_chuva;
 }
 
 
@@ -79,14 +100,13 @@ float leituraVolume(int tempo, int d1, int d2, int altura){
   d1 = maior diâmtro do tanque, em metros
   d2 = menor diâmetro do tanque, em metros
   altura = altura total do tanque, em metros
-  
   */
   
   // ******Cálculo da altura entre sensor e nível***** 
 
-  static unsigned long delay1 = millis(); // auxiliar para monitorar tempo de leitura
+  unsigned long delay1 = millis(); // auxiliar para monitorar tempo de leitura
   int cont = 0;   // conta quantidade de leituras para tirar a média
-  float valor = 0; // distância em cm do sensor JSN-SR04T
+  float valor_nivel = 0; // distância em cm do sensor JSN-SR04T
 
   while ((millis() - delay1) < tempo){
   
@@ -94,15 +114,15 @@ float leituraVolume(int tempo, int d1, int d2, int altura){
     delayMicroseconds(10);
     digitalWrite(trig, LOW);
     
-    int pulso = (float) pulseIn(echo, HIGH); //mede o tempo do pino echo em HIGH em microsegundos
+    float pulso = (float) pulseIn(echo, HIGH); //mede o tempo do pino echo em HIGH em microsegundos
   
-    valor += puslo/58.82; // distãncia convertida para cm - parâmetro do datasheet
+    valor_nivel += puslo/58.82; // distãncia convertida para cm - parâmetro do datasheet
     cont++;
   }
   
-  valor /= 100; // distância em metros
+  valor_nivel /= 100; // distância em metros
   
-  float distancia = (valor)/cont; //distância média em metros
+  float distancia = valor_nivel/cont; //distância média em metros
   
   // ******** Cálculo do volume *******
   
@@ -111,7 +131,7 @@ float leituraVolume(int tempo, int d1, int d2, int altura){
   float pi = 3.14159;
   
   float rf = ((altura - distancia)*(r1-r2))/altura + r2;
-  float volume = (pi*(altura-distancia)*(rf*rf + rf*r2 + r2*r2))/3;
+  float volume_agua = (pi*(altura-distancia)*(rf*rf + rf*r2 + r2*r2))/3;
   
   return volume;
 
