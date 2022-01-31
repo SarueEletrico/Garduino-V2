@@ -2,15 +2,24 @@
 
 // ----------- PINOS ---------------
 
-#define pinEcho 12
-#define pinTrig 13
+#define pinEcho 10
+#define pinTrig 11
 #define pinSQW 2
 #define pinRele 3
 #define pinHL691 A3
 #define pinHL692 A6
 #define pinChuva A2
-#define pinSCL A5
-#define pinSDA A4
+#define pinRtcSCL A5
+#define pinRtcSDA A4
+#define pinEncCLK 1
+#define pinEncDT 0
+#define pinEncBot 12
+#define pinLcdRs 8
+#define pinLcdE 9
+#define pinLcdD4 4
+#define pinLcdD5 5
+#define pinLcdD6 6
+#define pinLcdD7 7
 
 // ---------- Constantes -------------
 const int limiteChuva = 500;   // valor analógico limite para detectar chuva (experimental)
