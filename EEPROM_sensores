@@ -20,7 +20,10 @@ void setup() {
   //caso realmente seja a primeira vez precisamor forçar a EEPROM enderço 0 a ser 1
   Serial.begin(115200);
   
-  pinMode(potent, INPUT);
+  pinMode(nivel, INPUT);
+  pinMode(chuva, INPUT);
+  pinMode(umidade1, INPUT);
+  pinMode(umidade2, INPUT);
 
   EEPROM.update(0, 1);//lugar e valor forçado, DEVE SER REMOVIDO NO CÓDIGO FINAL
 }
