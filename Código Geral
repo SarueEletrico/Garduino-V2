@@ -9,8 +9,6 @@
 #define pinHL691 A3
 #define pinHL692 A6
 #define pinChuva A2
-#define pinACS712 A1
-#define pinTensao A2
 #define pinSCL A5
 #define pinSDA A4
 
