@@ -7,15 +7,18 @@
 
 //umidade - média dos sensores, descrito no código principal
 //distância - em metro ou cm calculado no principal
+bool rega;
+int umidade;
+int distancia;
 #define chuva A2 //sensor de chuva - //chuva - diretamente pelo sensor
 
 // o byte 0 da EEPROM contém o Byte que será trabalhado, conjunto de 8 medições
 // o byte 1 da EEPROM contém o Bit que será trabalhado e consequentemente o Número da medição
 
 
-int eeprom_alvo = 2; //local (inicial) dos dados do sensores
+int eeprom_alvo = 2; //local (inicial) dos dados das regas do primeiro conjunto //alvo é a cadeia de rega
 
-int eeprom_bit_alvo = 0; //local da info do bit do byte de rega
+int eeprom_bit_alvo = 0; //local da info do bit do byte de rega //bit da cadeia de rega a ser modificado
 
 
 
@@ -37,61 +40,68 @@ void checa_alvo(){
   eeprom_alvo = EEPROM.read(0);
 }
 
-
 void checa_bit_alvo(){
   //verifica e guarda em variavel, aponta pro proximo valor livre
   eeprom_bit_alvo = EEPROM.read(1);
 }
 
-void incrementa_bit(){
+
+void incrementa_alvo(){
   //incrementa pra proxima interação
-  EEPROM.update(1, eeprom_bit_alvo + 25);  //2,27,52...
+  EEPROM.update(0, eeprom_bit_alvo + 25);  //2,27,52...
 }
 
 void incrementa_bit_alvo(){
   //incrementa pra proxima interação
-  EEPROM.update(1, eeprom_bit_alvo + 1);
-}
-
-
-void incrementa_bit_alvo(){
-  //incrementa pra proxima interação
-  EEPROM.update(1, eeprom_bit_alvo + 1);
+  EEPROM.update(1, eeprom_bit_alvo + 1); //de 0 a 7, se for 8 nós iniciamos outra
 }
 
 
 void guarda_eeprom(){
-  int local = EEPROM.read(eeprom_alvo) + 4 * EEPROM.read(eeprom_bit_alvo)
-  EEPROM.update(local, analogRead(nivel);  //depende de como e quantos bits tem o nível, nivel em float (VER ISSO)
+  
+  if (eeprom_bit_alvo == 8){
+    eeprom_bit_alvo = 0;//reinicia contagem
+    incrementa_alvo(); //pula pro proximo conjunto
+  }
+
+
+  checa_alvo(); //atualizam valores
+  checa_bit_alvo();
+
+
+  int local = EEPROM.read(eeprom_alvo) + 4 * EEPROM.read(eeprom_bit_alvo);
+
+  EEPROM.update(local, distancia);  //depende de como e quantos bits tem o nível, nivel em float (VER ISSO)
   EEPROM.update(local + 1, analogRead(chuva));  //divide por quatro pois a EEPROM trabalha com menos bits,(VER ISSO, mapeado até 100)
-  EEPROM.update(local + 2, analogRead(umidade1)/4);
+  EEPROM.update(local + 2, umidade);
   
 
-  EEPROM.update(eeprom_alvo + 4, analogRead(regou)/4); //se regou ou não
-  
+  byte EEPROMbyte = EEPROM.read(eeprom_alvo);
+  bitWrite(EEPROMbyte, eeprom_bit_alvo, rega);
+  EEPROM.update(eeprom_alvo, EEPROMbyte);
+
+  incrementa_bit_alvo();
   
 }
+
 
 //EEPROM só guarda até 255, então precisa dividir os analogs por 4
 //Temos 1024 pra usar
 void loop() {
-  checa_alvo();
-  //Serial.print("Valor alvo da eeprom:");
+  guarda_eeprom();
+  
+  delay(4000);
+
+}
+
+//uma tecnica pode ser: fazer o update do endereço 0 a cada 10 ou 20 mudanças, prolongando a vida da EEPROM
+ //Serial.print("Valor alvo da eeprom:");
   //Serial.print(eeprom_alvo, DEC);
   //Serial.println();
   //Serial.print("Valor do potenciômetro ");
   //Serial.print(analogRead(potent),DEC);
   //Serial.println();
 
-  guarda_eeprom();
-
   //Serial.print("Valor guardado na EEPROM:");
   //Serial.print(EEPROM.read(eeprom_alvo),DEC);
   //Serial.println();
-
-  incrementa_alvo();
-  delay(4000);
-
-}
-
-//uma tecnica pode ser: fazer o update do endereço 0 a cada 10 ou 20 mudanças, prolongando a vida da EEPROM
