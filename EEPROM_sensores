@@ -1,17 +1,23 @@
 #include <EEPROM.h>
 
-#define nivel A0 //sensor de niveljsn-sr04t
-#define chuva A2 //sensor de chuva
-#define umidade1 A3 //sensor de umidade HL69
-#define umidade2 A6 //sensor de umidade HL69
+//EM CONSTRUÇÂO
 
-//guardaremos 4 ints e um bool (se regou ou não) - 5 bytes no total
+//Plano de funcionamento da EEPROM - conjuntos de 25 bits - no qual o primeiro Byte é guardado pras 8 proximas regas, guardando se regou ou não
+//Seriam as 8 regas e seus dados
 
-int len = EEPROM.length();
+//umidade - média dos sensores, descrito no código principal
+//distância - em metro ou cm calculado no principal
+#define chuva A2 //sensor de chuva - //chuva - diretamente pelo sensor
 
-int eeprom_alvo = 1;
+// o byte 0 da EEPROM contém o Byte que será trabalhado, conjunto de 8 medições
+// o byte 1 da EEPROM contém o Bit que será trabalhado e consequentemente o Número da medição
 
-bool regou = 0; //se regou ou não
+
+int eeprom_alvo = 2; //local (inicial) dos dados do sensores
+
+int eeprom_bit_alvo = 0; //local da info do bit do byte de rega
+
+
 
 
 //os primeiros endereços da EEPROM serão para definir onde será escrito
@@ -19,13 +25,11 @@ bool regou = 0; //se regou ou não
 void setup() {
   //caso realmente seja a primeira vez precisamor forçar a EEPROM enderço 0 a ser 1
   Serial.begin(115200);
-  
-  pinMode(nivel, INPUT);
+ 
   pinMode(chuva, INPUT);
-  pinMode(umidade1, INPUT);
-  pinMode(umidade2, INPUT);
-
-  EEPROM.update(0, 1);//lugar e valor forçado, DEVE SER REMOVIDO NO CÓDIGO FINAL
+ 
+  EEPROM.update(0, 2);//lugar e valor forçado, DEVE SER REMOVIDO NO CÓDIGO FINAL**********************
+  EEPROM.update(1, 0);//lugar e valor forçado, DEVE SER REMOVIDO NO CÓDIGO FINAL**********************
 }
 
 void checa_alvo(){
@@ -33,18 +37,35 @@ void checa_alvo(){
   eeprom_alvo = EEPROM.read(0);
 }
 
-void incrementa_alvo(){
+
+void checa_bit_alvo(){
+  //verifica e guarda em variavel, aponta pro proximo valor livre
+  eeprom_bit_alvo = EEPROM.read(1);
+}
+
+void incrementa_bit(){
   //incrementa pra proxima interação
-  EEPROM.update(0, eeprom_alvo + 5);//lugar e tamanho do set de infos
+  EEPROM.update(1, eeprom_bit_alvo + 25);  //2,27,52...
+}
+
+void incrementa_bit_alvo(){
+  //incrementa pra proxima interação
+  EEPROM.update(1, eeprom_bit_alvo + 1);
+}
+
+
+void incrementa_bit_alvo(){
+  //incrementa pra proxima interação
+  EEPROM.update(1, eeprom_bit_alvo + 1);
 }
 
 
 void guarda_eeprom(){
+  int local = EEPROM.read(eeprom_alvo) + 4 * EEPROM.read(eeprom_bit_alvo)
+  EEPROM.update(local, analogRead(nivel);  //depende de como e quantos bits tem o nível, nivel em float (VER ISSO)
+  EEPROM.update(local + 1, analogRead(chuva));  //divide por quatro pois a EEPROM trabalha com menos bits,(VER ISSO, mapeado até 100)
+  EEPROM.update(local + 2, analogRead(umidade1)/4);
   
-  EEPROM.update(eeprom_alvo, analogRead(nivel)/4); //depende de como e quantos bits tem o nível
-  EEPROM.update(eeprom_alvo + 1, analogRead(chuva)/4); //divide por quatro pois a EEPROM trabalha com menos bits
-  EEPROM.update(eeprom_alvo + 2, analogRead(umidade1)/4);
-  EEPROM.update(eeprom_alvo + 3, analogRead(umidade2 )/4);
 
   EEPROM.update(eeprom_alvo + 4, analogRead(regou)/4); //se regou ou não
   
