@@ -1,0 +1,418 @@
+#include <LiquidCrystal.h>
+
+
+LiquidCrystal lcd(2,3,4,5,6,7);
+
+// Variáveis para controle dos botões
+bool bot_ok = true;
+bool bot_up = true;
+bool abot_up = true;
+bool bot_down = true;
+bool abot_down = true;
+
+
+// Variáveis para funcionar o doble click
+uint8_t num_clicks_ok = 0;
+unsigned long timer = 0;
+char time_on = 0;
+char aux = 0;
+
+// Variáveis para controlar o lcd pelos botões
+uint8_t geral_page = 1; //pagina 0 = menu, pagina 1 = submenuConfig, pagina 3 = submenuType
+uint8_t menu_page = 0;
+uint8_t submenuConfig_page = 0;
+uint8_t typeConfig_page = 0;
+char change_page = 1;
+char* menu_text[] = {"Configuration","Last watering", "Next watering", "Water level", "Soil moisture", "Rain status"}; //tem que ter um número par de elementos nesse array
+char* submenuConfig_text[] = {"Change type", "Current time", "Type selected", "              "}; //tem que ter um número par de elementos nesse array
+char* submenuType_text[] = {"Small type", "Average type", "Large type", "               "}; //tem que ter um número par de elementos nesse array
+char* pointer = ">";
+uint8_t confirma = 0;
+uint8_t typeSelected = 0; // tipo de planta selecionada seguinte numeração do submenuType_text
+
+
+// Setup
+void setup() {
+  
+  lcd.begin(16,2);
+  lcd.clear();
+
+  pinMode(11, INPUT_PULLUP);
+  pinMode(12, INPUT_PULLUP);
+  pinMode(13, INPUT_PULLUP);
+
+  lcd.setCursor(4,0);
+  lcd.print(F("UNICAMP"));
+  lcd.setCursor(2,1);
+  lcd.print(F("Energy Club"));
+  delay(5000);
+
+
+}
+
+void loop() {
+
+  // Leitura dos botões
+  bot_ok = digitalRead(11); //trocar pela pinagem correta
+  bot_down = digitalRead(12); //trocar pela pinagem correta
+  bot_up = digitalRead(13); //trocar pela pinagem correta
+
+  // Atualizar display
+  if (change_page == 1){ // se o número do menu mudou, atualiza menu
+    if (menu_page %2==0) atualizar_menu_par();
+    else atualizar_menu_impar();
+  }
+  else if (change_page == 2){ // configuration page == submenuConfig
+    if (submenuConfig_page %2 ==0) atualizar_submenuConfig_par();
+    else atualizar_submenuConfig_impar();
+  }
+  else if (change_page == 3){ // last watering page
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.write(byte(32));
+    lcd.print(menu_text[1]);
+    lcd.setCursor(0,1);
+    lcd.print(F("rtc data")); // alterar para a variável correspondente
+    lcd.write(byte(32));
+    lcd.print(F("time")); // alterar para a variável correspondente
+  }
+  else if (change_page == 4){ // next watering page
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.write(byte(32));
+    lcd.print(menu_text[2]);
+    lcd.setCursor(0,1);
+    lcd.print(F("rtc data")); // alterar para a variável correspondente
+    lcd.write(byte(32));
+    lcd.print(F("rtc time")); // alterar para a variável correspondente
+  }
+  else if (change_page == 5){ // water level page
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.write(byte(32));
+    lcd.print(menu_text[3]);
+    lcd.setCursor(0,1);
+    lcd.print(F("water level")); // alterar para a variável correspondente
+  }
+  else if (change_page == 6){ // soil moisture page
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.write(byte(32));
+    lcd.print(menu_text[4]);
+    lcd.setCursor(0,1);
+    lcd.print(F("soil moisture")); // alterar para a variável correspondente
+  }
+  else if (change_page == 7){ // rain status page
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.write(byte(32));
+    lcd.print(menu_text[5]);
+    lcd.setCursor(0,1);
+    lcd.print(F("rain status")); // alterar para a variável correspondente
+  }
+  else if (change_page == 8){ // change type page == submenuType
+    if (typeConfig_page %2 ==0) atualizar_submenuType_par();
+    else atualizar_submenuType_impar();
+  }
+  else if (change_page == 9){ // current time page
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.write(byte(32));
+    lcd.print(submenuConfig_text[1]);
+    lcd.setCursor(0,1);
+    lcd.print(F("currente time   ")); // alterar para a variável correspondente
+  }
+  else if (change_page == 10){ // type selected page
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.write(byte(32));
+    lcd.print(submenuConfig_text[2]);
+    lcd.setCursor(2,1);
+    lcd.print(submenuType_text[typeSelected]); // alterar para a variável correspondente
+  }
+  else if (change_page == 11){ // small type page
+    lcd.clear();
+    lcd.setCursor(3,0);
+    lcd.print(submenuType_text[typeSelected]);
+    lcd.setCursor(4,1);
+    lcd.print(F("selected"));
+  }
+  else if (change_page == 12){ // average type page
+    lcd.clear();
+    lcd.setCursor(2,0);
+    lcd.print(submenuType_text[typeSelected]);
+    lcd.setCursor(4,1);
+    lcd.print(F("selected")); 
+  }
+  else if (change_page == 13){ // large type page
+    lcd.clear();
+    lcd.setCursor(3,0);
+    lcd.print(submenuType_text[typeSelected]);
+    lcd.setCursor(4,1);
+    lcd.print(F("selected")); 
+  }
+  change_page = 0;
+
+  // Rolar página para baixo
+  if(!bot_down && abot_down){
+    if (geral_page == 1){
+      if (menu_page < 5){ //tamanho do array menu_text - 1
+        menu_page++;
+        change_page = 1;
+      }
+    }
+    else if (geral_page == 2){
+      if (submenuConfig_page < 2){ //tamanho do array submenuConfig_text - 1
+        submenuConfig_page++;
+        change_page = 2;
+      }
+    }
+    else if(geral_page == 3){ 
+      if (typeConfig_page < 2){ //tamanho do array submenuType_text - 1
+        typeConfig_page++;
+        change_page = 8;
+      }
+    }
+  }
+  abot_down = bot_down;
+
+  // Rolar página para cima
+  if(!bot_up && abot_up){
+    if (geral_page == 1){
+      if (menu_page > 0){
+        menu_page--;
+        change_page = 1;
+      }
+    }
+    else if (geral_page == 2){
+      if (submenuConfig_page > 0){
+        submenuConfig_page--;
+        change_page = 2;
+      }
+    }
+    else if(geral_page == 3){
+      if (typeConfig_page > 0){
+        typeConfig_page--;
+        change_page = 8;
+      }
+    }
+  }
+  abot_up = bot_up;
+
+  // Contagem de clicks do botão confirma
+  if (bot_ok == LOW && aux == 0) {
+   num_clicks_ok++;
+   aux = 1; 
+   if (time_on == 0) { 
+      timer = millis();
+      time_on = 1;
+   }
+  }
+  if (bot_ok == HIGH) {
+     aux = 0; 
+  }
+
+  // Click de confirma e double click de retorno
+  if (millis() - timer >= 500 ) { 
+   switch (num_clicks_ok) {   
+      case 1: {
+                  confirma = 1;
+                  break;
+                  }
+      case 2: {
+                  confirma = 2;
+                  break;
+                  }
+      default: {
+                  confirma = 0;
+                  break;
+                  }
+      }
+  num_clicks_ok = 0; 
+  aux = 0; 
+  time_on = 0;
+  }
+  
+  if (confirma == 1){
+     if (geral_page == 1){
+      if (menu_page == 0) submenusConfig();
+      else if (menu_page == 1) last_watering();
+      else if (menu_page == 2) next_watering();
+      else if (menu_page == 3) water_level();
+      else if (menu_page == 4) soil_moisture();
+      else if (menu_page == 5) rain_status();
+    } 
+    else if (geral_page == 2){
+      if (submenuConfig_page == 0) submenuType(); 
+      else if (submenuConfig_page == 1) currente_time();
+      else if (submenuConfig_page == 2) type_selected();
+    }
+    else if (geral_page == 3){
+      if (typeConfig_page == 0) small_type(); 
+      else if (typeConfig_page == 1) average_type();
+      else if (typeConfig_page == 2) large_type();
+    }
+  }
+  else if (confirma == 2){
+    if (geral_page == 0){
+        geral_page = 1;
+        change_page = 1;
+      }
+    else if (geral_page == 2){
+      geral_page = 1;
+      change_page = 1;
+      submenuConfig_page = 0;
+      }
+    else if (geral_page == 3){
+      geral_page = 2;
+      change_page = 2;
+      }
+    else if (geral_page == 4){
+        geral_page = 2;
+        change_page = 2;
+        typeConfig_page = 0;
+      }
+    else if (geral_page == 5){
+        geral_page = 3;
+        change_page = 8;
+      }
+    }
+  
+  delay(10);
+  
+}
+
+// Funções para atualizar o display lcd no menu e submenus
+void atualizar_menu_par(){
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.write(pointer);
+  lcd.print(menu_text[menu_page]);
+  lcd.setCursor(0,1);
+  lcd.write(byte(32));
+  lcd.print(menu_text[menu_page+1]);
+}
+
+void atualizar_menu_impar(){  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.write(byte(32));
+  lcd.print(menu_text[menu_page-1]);
+  lcd.setCursor(0,1);
+  lcd.write(pointer);
+  lcd.print(menu_text[menu_page]);
+}
+
+void atualizar_submenuConfig_par(){
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.write(pointer);
+  lcd.print(submenuConfig_text[submenuConfig_page]);
+  lcd.setCursor(0,1);
+  lcd.write(byte(32));
+  lcd.print(submenuConfig_text[submenuConfig_page+1]);
+  
+}
+
+void atualizar_submenuConfig_impar(){  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.write(byte(32));
+  lcd.print(submenuConfig_text[submenuConfig_page-1]);
+  lcd.setCursor(0,1);
+  lcd.write(pointer);
+  lcd.print(submenuConfig_text[submenuConfig_page]);
+}
+
+void atualizar_submenuType_par(){
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.write(pointer);
+  lcd.print(submenuType_text[typeConfig_page]);
+  lcd.setCursor(0,1);
+  lcd.write(byte(32));
+  lcd.print(submenuType_text[typeConfig_page+1]);
+  
+}
+
+void atualizar_submenuType_impar(){  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.write(byte(32));
+  lcd.print(submenuType_text[typeConfig_page-1]);
+  lcd.setCursor(0,1);
+  lcd.write(pointer);
+  lcd.print(submenuType_text[typeConfig_page]);
+}
+
+// Funções após seleção de página no menu
+void submenusConfig(){
+  geral_page = 2;
+  change_page = 2;
+}
+
+void last_watering(){
+  geral_page = 0;
+  change_page = 3;
+}
+
+void next_watering(){
+  geral_page = 0;
+  change_page = 4;
+}
+
+void water_level(){
+  geral_page = 0;
+  change_page = 5;
+}
+
+void soil_moisture(){
+  geral_page = 0;
+  change_page = 6;
+}
+
+void rain_status(){
+  geral_page = 0;
+  change_page = 7;
+}
+
+
+// Funções após seleção da página "Configuration"
+void submenuType(){
+  geral_page = 3;
+  change_page = 8;
+}
+
+void currente_time(){
+  geral_page = 4;
+  change_page = 9;
+}
+
+void type_selected(){
+  geral_page = 4;
+  change_page = 10;
+}
+
+
+// Funções após seleção da página "Change Type"
+void small_type(){
+  typeSelected = 0;
+  geral_page = 5;
+  change_page = 11;
+}
+
+void average_type(){
+  typeSelected = 1;
+  geral_page = 5;
+  change_page = 12;
+}
+
+void large_type(){
+  typeSelected = 2;
+  geral_page = 5;
+  change_page = 13;
+}
+
