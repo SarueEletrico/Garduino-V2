@@ -195,7 +195,7 @@ void incrementa_bit_alvo(){
 
   int local = EEPROM.read(eeprom_alvo) + 3 * EEPROM.read(eeprom_bit_alvo) + 1; //o +1 é para passar o byte das regas
 
-  EEPROM.update(local, distancia);  //LINHA 147 VERIFICAR, CASO PRECISE MULTIPLICAR
+  EEPROM.update(local, (int)(distancia * 100));  //LINHA 147 VERIFICAR, CASO PRECISE MULTIPLICAR
   EEPROM.update(local + 1, resultado_chuva);  //LINHA 110
   EEPROM.update(local + 2, resultado_umidade);
   
