@@ -25,7 +25,7 @@ uint8_t typeConfig_page = 0;
 char change_page = 1;
 char* menu_text[] = {"Configuration","Last watering", "Next watering", "Water level", "Soil moisture", "Rain status"}; //tem que ter um número par de elementos nesse array
 char* submenuConfig_text[] = {"Change type", "Current time", "Type selected", "              "}; //tem que ter um número par de elementos nesse array
-char* submenuType_text[] = {"Small type", "Average type", "Large type", "               "}; //tem que ter um número par de elementos nesse array
+char* submenuType_text[] = {"Lettuce", "Arugula", "Large type", "               "}; //tem que ter um número par de elementos nesse array
 char* pointer = ">";
 uint8_t confirma = 0;
 uint8_t typeSelected = 0; // tipo de planta selecionada seguinte numeração do submenuType_text
@@ -130,16 +130,16 @@ void loop() {
     lcd.setCursor(2,1);
     lcd.print(submenuType_text[typeSelected]); // alterar para a variável correspondente
   }
-  else if (change_page == 11){ // small type page
+  else if (change_page == 11){ // lettuce page
     lcd.clear();
-    lcd.setCursor(3,0);
+    lcd.setCursor(4,0);
     lcd.print(submenuType_text[typeSelected]);
     lcd.setCursor(4,1);
     lcd.print(F("selected"));
   }
-  else if (change_page == 12){ // average type page
+  else if (change_page == 12){ // arugula page
     lcd.clear();
-    lcd.setCursor(2,0);
+    lcd.setCursor(4,0);
     lcd.print(submenuType_text[typeSelected]);
     lcd.setCursor(4,1);
     lcd.print(F("selected")); 
@@ -415,4 +415,3 @@ void large_type(){
   geral_page = 5;
   change_page = 13;
 }
-
